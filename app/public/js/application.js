@@ -15,22 +15,31 @@ let mouse = {
 
 let snapshot;
 
-let drawHelperRules = (x, y) => {
-  context.beginPath();
-  context.moveTo(x, 0);
-  context.lineTo(x, window.innerHeight);
-  context.stroke();
-};
-
+//
+// Take snapshot of current canvas
+//
 let takeSnapshot = () => {
   snapshot = context.getImageData(0, 0, canvas.width, canvas.height);
 };
 
+//
+// Restore snapshot from [snapshot]
+//
 let restoreSnapshot = () => {
   context.putImageData(snapshot, 0, 0);
 };
 
-let drawTriangle = () => {
+//
+// @return random hex color(six number format)
+//
+let randomColor = () => {
+  return `#${Math.random().toString(16).slice(-6)}`
+};
+
+//
+// @param isFinalTriangle [boolean] True if triangle drawn is on mouse up event, false on mouse drag
+//
+let drawTriangle = (isFinalTriangle) => {
   context.beginPath();
 
   // Start drawing from middle of start and end x since it's a triangle
@@ -42,8 +51,15 @@ let drawTriangle = () => {
   // Draw base
   context.lineTo(mouse.end.x, mouse.end.y);
 
-  // We don't need to complete the triangle's third side as it is handled automatically
-  context.fill();
+  if (isFinalTriangle) {
+    // We don't need to complete the triangle's third side as it is handled automatically in case of fill
+    context.fillStyle = randomColor();
+    context.fill();
+  } else {
+    // draw third side also in case of stroke
+    context.lineTo((mouse.start.x + mouse.end.x) / 2, mouse.start.y / 2)
+    context.stroke();
+  }
 };
 
 //
@@ -60,14 +76,17 @@ canvas.onmousedown = (event) => {
   takeSnapshot();
 };
 
-let restoreAndDraw = function (x, y) {
+//
+// Restore from current snapshot (in which mouse drag triangle is absent) and draw new triangle
+//
+let restoreAndDraw = function (x, y, isFinalTriangle) {
   mouse.end = {
     x: x,
     y: y
   };
 
   restoreSnapshot();
-  drawTriangle();
+  drawTriangle(isFinalTriangle);
 };
 
 //
@@ -75,7 +94,7 @@ let restoreAndDraw = function (x, y) {
 //
 canvas.onmouseup = (event) => {
   mouse.dragging = false;
-  restoreAndDraw(event.pageX, event.pageY);
+  restoreAndDraw(event.pageX, event.pageY, true);
 };
 
 //
@@ -86,6 +105,6 @@ canvas.onmousemove = (event) => {
 
   // We don't want to draw if mouse status is not pressed (dragging)
   if (mouse.dragging) {
-    restoreAndDraw(event.pageX, event.pageY);
+    restoreAndDraw(event.pageX, event.pageY, false);
   }
 };
