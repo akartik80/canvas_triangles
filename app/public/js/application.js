@@ -89,6 +89,10 @@ let restoreAndDraw = function (x, y, isFinalTriangle) {
   drawTriangle(isFinalTriangle);
 };
 
+let clearCanvas = () => {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+};
+
 //
 // mouse up event handler
 //
